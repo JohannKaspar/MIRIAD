@@ -55,16 +55,28 @@ PAIRS = WORK / "pairs.jsonl"
 
 def cmd_sample(args) -> None:
     source = Path(args.source)
-    if args.frame == "generated":
-        passages = sample_module.iter_generated(source)
-    elif args.frame == "step4":
-        passages = sample_module.iter_step4(source)
-    else:
-        passages = sample_module.iter_released(str(args.source))
-    drawn = sample_module.draw(passages, args.size, args.seed)
     WORK.mkdir(parents=True, exist_ok=True)
-    sample_module.write(drawn, SAMPLE, args.frame, args.seed)
-    print(f"drew {len(drawn)} passages from frame '{args.frame}' with seed {args.seed}")
+
+    if args.frame == "generated":
+        print("pass 1: collecting passage ids", flush=True)
+        ids, frame_size = sample_module.draw_ids(
+            sample_module.iter_generated_ids(source), args.size, args.seed)
+        print(f"  frame holds {frame_size:,} passages; drew {len(ids)}", flush=True)
+        print("pass 2: reading back the drawn passages", flush=True)
+        found = sample_module.fetch_generated(source, set(ids))
+        missing = [i for i in ids if i not in found]
+        if missing:
+            raise RuntimeError(f"{len(missing)} drawn passages not found, e.g. {missing[:3]}")
+        drawn = [found[i] for i in ids]
+    else:
+        passages = (sample_module.iter_step4(source) if args.frame == "step4"
+                    else sample_module.iter_released(str(args.source)))
+        drawn = sample_module.draw(passages, args.size, args.seed)
+        frame_size = None
+
+    sample_module.write(drawn, SAMPLE, args.frame, args.seed,
+                        frame_size=frame_size, source=str(source))
+    print(f"\ndrew {len(drawn)} passages from frame '{args.frame}' with seed {args.seed}")
     print(f"  -> {SAMPLE}")
     print(f"  first three: {[p.passage_id for p in drawn[:3]]}")
 

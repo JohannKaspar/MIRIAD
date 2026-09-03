@@ -59,19 +59,47 @@ class Passage:
     text: str
 
 
-def iter_generated(generated_dir: Path, shards: list[int] | None = None):
-    """Yield every passage that was actually sent to the original model.
-
-    Each shard_<n>.json maps paper_id -> {"passage_info": {passage_id: {...}}},
-    where each entry carries passage_text, the parsed qa pairs and the raw
-    llm_output. Only passage_text is returned here; the original arm is read
-    separately so the two arms stay clearly apart.
-    """
+def _generated_shard_paths(generated_dir: Path, shards: list[int] | None):
     for path in sorted(generated_dir.glob("shard_*.json"),
                        key=lambda p: int(p.stem.rsplit("_", 1)[1])):
         shard = int(path.stem.rsplit("_", 1)[1])
-        if shards is not None and shard not in shards:
-            continue
+        if shards is None or shard in shards:
+            yield shard, path
+
+
+def iter_generated_ids(generated_dir: Path, shards: list[int] | None = None):
+    """Yield passage ids only.
+
+    The frame holds over a million passages of about 4,500 characters each, so
+    materialising their text to draw a sample of 2,000 would cost several GB.
+    Ids are collected first, the sample is drawn from those, and only the drawn
+    passages are read back by `fetch_generated`.
+    """
+    for _shard, path in _generated_shard_paths(generated_dir, shards):
+        for paper in json.loads(path.read_text()).values():
+            yield from paper.get("passage_info", {})
+
+
+def fetch_generated(generated_dir: Path, wanted: set[str],
+                    shards: list[int] | None = None) -> dict[str, Passage]:
+    """Read back just the passages named in `wanted`."""
+    found: dict[str, Passage] = {}
+    for shard, path in _generated_shard_paths(generated_dir, shards):
+        for paper_id, paper in json.loads(path.read_text()).items():
+            for passage_id, entry in paper.get("passage_info", {}).items():
+                if passage_id in wanted:
+                    index = int(passage_id.rsplit("_", 1)[1])
+                    found[passage_id] = Passage(passage_id, shard, str(paper_id),
+                                                index, entry["passage_text"])
+        if len(found) == len(wanted):
+            break
+    return found
+
+
+def iter_generated(generated_dir: Path, shards: list[int] | None = None):
+    """Yield every generated passage with its text. Memory-hungry; prefer the
+    id-then-fetch path above for anything covering the whole frame."""
+    for shard, path in _generated_shard_paths(generated_dir, shards):
         for paper_id, paper in json.loads(path.read_text()).items():
             for passage_id, entry in paper.get("passage_info", {}).items():
                 index = int(passage_id.rsplit("_", 1)[1])
@@ -108,26 +136,37 @@ def iter_released(corpus_glob: str):
         yield Passage(f"{shard}_{paper_id}_{index}", int(shard), paper_id, int(index), text)
 
 
-def draw(passages, size: int, seed: int) -> list[Passage]:
-    """Shuffle the frame under `seed` and take the first `size`.
+def draw_ids(passage_ids, size: int, seed: int) -> tuple[list[str], int]:
+    """Shuffle the frame's ids under `seed` and take the first `size`.
 
     Sorting first makes the result independent of filesystem ordering, so the
-    same seed and frame always give the same sample in the same order.
+    same seed and frame always give the same sample in the same order. Returns
+    the drawn ids and the frame size they were drawn from.
     """
-    ordered = sorted(passages, key=lambda p: p.passage_id)
+    ordered = sorted(passage_ids)
     if size > len(ordered):
         raise ValueError(f"asked for {size} passages, frame holds {len(ordered)}")
     random.Random(seed).shuffle(ordered)
-    return ordered[:size]
+    return ordered[:size], len(ordered)
 
 
-def write(sample: list[Passage], path: Path, frame: str, seed: int) -> None:
+def draw(passages, size: int, seed: int) -> list[Passage]:
+    """Id-based draw over materialised passages, for the smaller frames."""
+    by_id = {p.passage_id: p for p in passages}
+    drawn, _ = draw_ids(by_id.keys(), size, seed)
+    return [by_id[i] for i in drawn]
+
+
+def write(sample: list[Passage], path: Path, frame: str, seed: int,
+          frame_size: int | None = None, source: str | None = None) -> None:
     path.write_text(
         json.dumps(
             {
                 "frame": frame,
+                "source": source,
                 "seed": seed,
                 "size": len(sample),
+                "frame_size": frame_size,
                 "passages": [asdict(p) for p in sample],
             },
             indent=1,
