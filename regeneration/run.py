@@ -55,10 +55,12 @@ PAIRS = WORK / "pairs.jsonl"
 
 def cmd_sample(args) -> None:
     source = Path(args.source)
-    if args.frame == "step4":
+    if args.frame == "generated":
+        passages = sample_module.iter_generated(source)
+    elif args.frame == "step4":
         passages = sample_module.iter_step4(source)
     else:
-        passages = sample_module.iter_released(str(source))
+        passages = sample_module.iter_released(str(args.source))
     drawn = sample_module.draw(passages, args.size, args.seed)
     WORK.mkdir(parents=True, exist_ok=True)
     sample_module.write(drawn, SAMPLE, args.frame, args.seed)
@@ -153,9 +155,10 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("sample", help="draw the full passage sample once")
-    p.add_argument("--frame", choices=["step4", "released"], required=True)
+    p.add_argument("--frame", choices=["generated", "step4", "released"], required=True)
     p.add_argument("--source", required=True,
-                   help="step4: the medicine_passages directory. released: a parquet glob")
+                   help="generated: the shard_*.json directory. step4: medicine_passages. "
+                        "released: a parquet glob")
     p.add_argument("--size", type=int, default=2000)
     p.add_argument("--seed", type=int, required=True)
     p.set_defaults(func=cmd_sample)
