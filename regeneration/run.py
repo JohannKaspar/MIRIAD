@@ -23,6 +23,28 @@ from . import batch as batch_module
 from . import parse as parse_module
 from . import sample as sample_module
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_dotenv() -> None:
+    """Read OPENAI_API_KEY and friends from a gitignored .env at the repo root.
+
+    The key is not committed and an already-exported value always wins, so this
+    only fills in what the shell did not provide.
+    """
+    import os
+
+    path = REPO_ROOT / ".env"
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+
+
 WORK = Path("regeneration/work")
 SAMPLE = WORK / "sample.json"
 REQUESTS = WORK / "requests.jsonl"
@@ -156,6 +178,7 @@ def main() -> None:
         p.set_defaults(func=func)
 
     args = parser.parse_args()
+    load_dotenv()
     args.func(args)
 
 
