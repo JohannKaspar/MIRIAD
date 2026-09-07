@@ -138,6 +138,9 @@ def cmd_parse(args) -> None:
             out.write(json.dumps({
                 "passage_id": passage_id,
                 "pairs": [{"question": q, "answer": a} for q, a in kept],
+                "raw_pairs": [{"question": q, "answer": a,
+                               "survives_filter": parse_module.survives_keyword_filter(a)}
+                              for q, a in tolerant],
                 "released_parsed": len(released),
                 "tolerant_parsed": len(tolerant),
                 "meta": meta,
