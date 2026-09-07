@@ -1,0 +1,65 @@
+{
+ "paired_passages": 2000,
+ "arm_a_original": {
+  "passages": 2000,
+  "raw_pairs": 6000,
+  "raw_pairs_per_passage": 3.0,
+  "trigger_phrase_rate": 0.2918,
+  "filter_survival": 0.7082,
+  "kept_pairs": 4249,
+  "kept_per_passage_hist": {
+   "0": 393,
+   "1": 136,
+   "2": 300,
+   "3": 1171
+  },
+  "kept_per_passage_share": {
+   "0": 0.1965,
+   "1": 0.068,
+   "2": 0.15,
+   "3": 0.5855
+  },
+  "coverage": 0.8035,
+  "answer_in_passage_median": 0.284,
+  "question_tokens_median": 14,
+  "answer_tokens_median": 69,
+  "near_duplicate_rate": 0.0003
+ },
+ "arm_b_regenerated": {
+  "passages": 2000,
+  "raw_pairs": 6000,
+  "raw_pairs_per_passage": 3.0,
+  "trigger_phrase_rate": 0.1282,
+  "filter_survival": 0.8718,
+  "kept_pairs": 5231,
+  "kept_per_passage_hist": {
+   "0": 36,
+   "1": 136,
+   "2": 389,
+   "3": 1439
+  },
+  "kept_per_passage_share": {
+   "0": 0.018,
+   "1": 0.068,
+   "2": 0.1945,
+   "3": 0.7195
+  },
+  "coverage": 0.982,
+  "answer_in_passage_median": 0.029,
+  "question_tokens_median": 18,
+  "answer_tokens_median": 101,
+  "near_duplicate_rate": 0.0
+ },
+ "coverage_recovered_by_b": 380,
+ "coverage_lost_by_b": 23,
+ "coverage_recovered_share": 0.19,
+ "_provenance": {
+  "batch_id": "batch_6a9eb6adc4448190a0ed43611f50ff4a",
+  "model": "gpt-5.6-sol",
+  "reasoning_effort": "low",
+  "preregistration_commit": "b02b332",
+  "sample_sha256": "2e2634c0391956cde8ecc8ad3443d0f672a82de671beb670c42843defcb8ea16",
+  "cost_usd": 17.23,
+  "date": "2026-08-29"
+ }
+}
