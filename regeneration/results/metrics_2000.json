@@ -21,6 +21,8 @@
   },
   "coverage": 0.8035,
   "answer_in_passage_median": 0.284,
+  "content_word_overlap_median": 0.837,
+  "answers_under_half_content_in_passage": 0.0329,
   "question_tokens_median": 14,
   "answer_tokens_median": 69,
   "near_duplicate_rate": 0.0003
@@ -46,6 +48,8 @@
   },
   "coverage": 0.982,
   "answer_in_passage_median": 0.029,
+  "content_word_overlap_median": 0.54,
+  "answers_under_half_content_in_passage": 0.3397,
   "question_tokens_median": 18,
   "answer_tokens_median": 101,
   "near_duplicate_rate": 0.0

@@ -40,6 +40,23 @@ def answer_in_passage(answer: str, passage: str, n: int = 4) -> float:
     return len(grams & _ngrams(_tokens(passage), n)) / len(grams)
 
 
+_STOP = set("the a an of and or in on to for with by is are was were be been that this these "
+            "those as at from it its their which who whom into than then also may can not no such "
+            "more most other some any each both between over under during after before within "
+            "without about".split())
+
+
+def content_word_overlap(answer: str, passage: str) -> float:
+    """Share of the answer's content words (stopwords and short tokens removed)
+    that occur anywhere in the passage. Tolerant of paraphrase, so low values
+    point to content the passage does not contain rather than to rewording.
+    """
+    words = {w for w in _tokens(answer) if w not in _STOP and len(w) > 2}
+    if not words:
+        return 0.0
+    return len(words & {w for w in _tokens(passage) if w not in _STOP and len(w) > 2}) / len(words)
+
+
 def near_duplicate(a: str, b: str, threshold: float = 0.7) -> bool:
     ta, tb = set(_tokens(a)), set(_tokens(b))
     return bool(ta and tb) and len(ta & tb) / len(ta | tb) >= threshold
@@ -67,7 +84,7 @@ def load_arm_b(path: Path) -> dict[str, dict]:
 def _arm_stats(records: list[dict], passages: dict[str, str]) -> dict:
     raw = kept = trigger = 0
     kept_hist = Counter()
-    ain, qlen, alen = [], [], []
+    ain, cwo, qlen, alen = [], [], [], []
     dup_pairs = dup_total = 0
     for rec in records:
         raw_pairs = rec["raw_pairs"] if "raw_pairs" in rec else rec["pairs"]
@@ -80,6 +97,7 @@ def _arm_stats(records: list[dict], passages: dict[str, str]) -> dict:
             kept_here += 1 if survives else 0
             if survives:
                 ain.append(answer_in_passage(pr["answer"], passages[rec["passage_id"]]))
+                cwo.append(content_word_overlap(pr["answer"], passages[rec["passage_id"]]))
                 qlen.append(len(_tokens(pr["question"])))
                 alen.append(len(_tokens(pr["answer"])))
         kept += kept_here
@@ -107,6 +125,8 @@ def _arm_stats(records: list[dict], passages: dict[str, str]) -> dict:
         "kept_per_passage_share": {str(k): round(kept_hist[k] / n, 4) for k in range(4)} if n else {},
         "coverage": round(sum(v for k, v in kept_hist.items() if k > 0) / n, 4) if n else None,
         "answer_in_passage_median": round(med(ain), 3) if ain else None,
+        "content_word_overlap_median": round(med(cwo), 3) if cwo else None,
+        "answers_under_half_content_in_passage": round(sum(x < 0.5 for x in cwo) / len(cwo), 4) if cwo else None,
         "question_tokens_median": med(qlen),
         "answer_tokens_median": med(alen),
         "near_duplicate_rate": round(dup_pairs / dup_total, 4) if dup_total else None,
@@ -165,7 +185,9 @@ def print_report(m: dict) -> None:
         ("trigger-phrase rate", "trigger_phrase_rate"),
         ("filter survival", "filter_survival"),
         ("coverage (>=1 kept)", "coverage"),
-        ("answer-in-passage, median", "answer_in_passage_median"),
+        ("answer 4-grams in passage, median", "answer_in_passage_median"),
+        ("content words in passage, median", "content_word_overlap_median"),
+        ("answers <50% content in passage", "answers_under_half_content_in_passage"),
         ("question tokens, median", "question_tokens_median"),
         ("answer tokens, median", "answer_tokens_median"),
         ("near-duplicate rate", "near_duplicate_rate"),

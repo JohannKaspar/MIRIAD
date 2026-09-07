@@ -118,3 +118,18 @@ screens, the ratings and both seeds are released.
 ## Deviations
 
 None yet.
+
+## Observations logged before any rating, 2026-08-29
+
+Recorded for transparency about what was known when rating began. Nothing above
+is changed by them.
+
+The countable measurements over all 2,000 passages show arm B's answers overlap
+their source passage far less than arm A's: median verbatim 4-gram overlap 0.029
+against 0.284, and even on a paraphrase-tolerant content-word measure 34.0% of
+B's answers have fewer than half their content words anywhere in the passage,
+against 3.3% for A. The text above assumes the three criteria sit near a ceiling
+on both arms; for Grounded in Passage on arm B that assumption may not hold.
+The reporting rule for the criteria is unchanged: descriptive, in the paper's
+units, not a test. If the groundedness rate on arm B is well below ceiling, that
+is a finding, and it will be reported as one rather than as a preference.
