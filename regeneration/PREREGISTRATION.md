@@ -115,9 +115,6 @@ A material difference is reported as one, with the regeneration cost stated. No
 result is described as a mandate to rebuild or not to rebuild. The blinded
 screens, the ratings and both seeds are released.
 
-## Deviations
-
-None yet.
 
 ## Observations logged before any rating, 2026-08-29
 
@@ -133,3 +130,17 @@ on both arms; for Grounded in Passage on arm B that assumption may not hold.
 The reporting rule for the criteria is unchanged: descriptive, in the paper's
 units, not a test. If the groundedness rate on arm B is well below ceiling, that
 is a finding, and it will be reported as one rather than as a preference.
+
+## Deviations
+
+**2026-08-29, prompt not byte-identical in the first generation run.** The
+prompt extractor read the raw source characters between the triple quotes
+instead of evaluating the literal, so the escape `\n` at the end of
+`main_prompt` was sent as a backslash and an `n` followed by the line break,
+where the original script sent the line break alone. Every other byte of both
+prompt parts was identical. All 2,000 requests in batch
+`batch_6a9eb6adc4448190a0ed43611f50ff4a` carried this one stray token
+immediately before the passage. The extractor now evaluates the literal and is
+checked against Python's own evaluation. Whether arm B is regenerated under the
+exact prompt, or the run is kept with this caveat, is recorded below when
+decided.
