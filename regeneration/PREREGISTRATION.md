@@ -146,3 +146,13 @@ exact prompt, or the run is kept with this caveat, is recorded below when
 decided.
 
 **Timing of the first generation batch against the pre-registration.** Commit `b02b332` is at 13:05:26 UTC on 2026-09-07 and batch `batch_6a9eb6adc4448190a0ed43611f50ff4a` was created at 13:05:49 UTC, so the design was committed before generation started, by a margin of 23 seconds. No pair had been read before rating in any case; the margin is recorded because the file claims the ordering and a claim that thin should carry its evidence.
+
+**Disposition, 2026-09-08.** The first batch is treated as a pipeline shakedown
+and none of its output is reported. The rated subset is regenerated under the
+exact prompt in batch `batch_6a9fbd5366a4819094c69be264ba94b5`: the first 100
+comparison-stratum and first 35 recovery-stratum passages in draw order, from
+which the 90 and 30 screens are taken by the pre-registered rule. The full
+2,000 are regenerated under the exact prompt before any countable measurement
+is reported, once the rating and judging pipeline has run end to end on the
+subset. Every reported number therefore comes from runs under the prompt as
+released.
