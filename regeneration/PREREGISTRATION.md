@@ -173,3 +173,11 @@ whether the defective set was not the preferred one. The gate of 9 of 12 uses
 the first definition. Computed by `regeneration/analysis.py`, which also fixes
 the interval (Wilson) and the agreement statistic (raw agreement and Cohen's
 kappa over the three positional labels).
+
+**Judge position control, run before any rating, 2026-09-08.** Every comparison
+screen was judged a second time with the two sets swapped. In 90 screens
+judged in both orders the same arm was preferred 78 times and the verdict
+flipped with position 12 times (13%), 10 of those flips being the
+first-shown set chosen in both orders. The judge's agreement with the evaluator is
+reported on the original order, as registered, and additionally on the
+order-consistent subset. The judge's own preference on that subset is descriptive.
