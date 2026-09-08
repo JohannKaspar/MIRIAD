@@ -55,7 +55,7 @@ def render(passage: str, sets: list[list[dict]]) -> str:
     return "\n".join(parts)
 
 
-def ask(client, prompt: str, model: str, retries: int = 6) -> tuple[int | None, str]:
+def ask(client, prompt: str, model: str, retries: int = 6, max_tokens: int = 1024) -> tuple[int | None, str]:
     delay = 3
     for attempt in range(retries):
         try:
@@ -63,7 +63,7 @@ def ask(client, prompt: str, model: str, retries: int = 6) -> tuple[int | None, 
             # max_tokens; a cap of 8 returned nothing at all. Leave room, keep
             # thinking on, and take the last standalone digit of the visible reply.
             r = client.chat.completions.create(
-                model=model, temperature=0, max_tokens=1024,
+                model=model, temperature=0, max_tokens=max_tokens,
                 messages=[{"role": "system", "content": SYSTEM},
                           {"role": "user", "content": prompt}])
             text = (r.choices[0].message.content or "").strip()
@@ -82,13 +82,17 @@ def _done(path: Path) -> set[str]:
     return {json.loads(l)["item_id"] for l in path.read_text().splitlines() if l.strip()}
 
 
-def run_items(items: list[dict], out: Path, model: str, workers: int) -> None:
+def run_items(items: list[dict], out: Path, model: str, workers: int,
+              max_tokens: int = 1024, redo_unparsed: bool = False) -> None:
+    if redo_unparsed and out.exists():
+        kept = [l for l in out.read_text().splitlines() if l.strip() and json.loads(l)["verdict"] is not None]
+        out.write_text("\n".join(kept) + ("\n" if kept else ""))
     done = _done(out)
     todo = [it for it in items if it["item_id"] not in done]
     print(f"{len(todo)} to judge, {len(done)} already done  -> {out}", flush=True)
     client = _client()
     with out.open("a") as fh, ThreadPoolExecutor(max_workers=workers) as ex:
-        futs = {ex.submit(ask, client, render(it["passage"], it["sets"]), model): it for it in todo}
+        futs = {ex.submit(ask, client, render(it["passage"], it["sets"]), model, 6, max_tokens): it for it in todo}
         for n, fut in enumerate(as_completed(futs), 1):
             it = futs[fut]
             verdict, raw = fut.result()
@@ -144,11 +148,14 @@ def main() -> None:
     ap.add_argument("--model", default=MODEL)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--max-tokens", type=int, default=1024, help="room for thinking; raise if verdicts come back unparsed")
+    ap.add_argument("--redo-unparsed", action="store_true", help="drop unparsed verdicts and judge those items again")
     args = ap.parse_args()
     items = items_from_screens() if args.mode == "screens" else items_from_stratum(Path(args.pairs))
     if args.limit:
         items = items[: args.limit]
-    run_items(items, W / f"judge_{args.mode}.jsonl", args.model, args.workers)
+    run_items(items, W / f"judge_{args.mode}.jsonl", args.model, args.workers,
+              max_tokens=args.max_tokens, redo_unparsed=args.redo_unparsed)
 
 
 if __name__ == "__main__":
