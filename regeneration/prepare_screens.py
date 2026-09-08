@@ -86,8 +86,9 @@ def build(planted_path: Path = W / "planted_contradictions.json") -> dict:
         (recovery if len(recovery) < N_RECOVERY else rec_spare).append(pid)
     if len(comparison) < N_COMPARISON or len(recovery) < N_RECOVERY:
         raise RuntimeError(f"not enough candidates: {len(comparison)} comparison, {len(recovery)} recovery")
-    if len(comp_spare) < N_PLANT_TWO_SET or len(rec_spare) < N_PLANT_ONE_SET:
-        raise RuntimeError(f"not enough spares for planted screens: {len(comp_spare)} / {len(rec_spare)}")
+    if len(comp_spare) + len(rec_spare) < N_PLANT_TWO_SET + N_PLANT_ONE_SET:
+        raise RuntimeError(f"not enough spares for 12 planted screens: {len(comp_spare)} comparison, "
+                           f"{len(rec_spare)} recovery")
 
     contradictions = json.load(open(planted_path)) if planted_path.exists() else {}
     plan = plan_planted(comp_spare, rec_spare)
@@ -162,8 +163,13 @@ def plan_planted(comp_spare: list[str], rec_spare: list[str]) -> list[dict]:
     """
     rng = random.Random(BLIND_SEED + 1)
     plan = []
-    picks = [(pid, "two") for pid in comp_spare[:N_PLANT_TWO_SET]] + \
-            [(pid, "one") for pid in rec_spare[:N_PLANT_ONE_SET]]
+    # Twelve in total, six of each defect; that is what the pre-registration
+    # fixes. The two-set / one-set split is preferred at 10 / 2 but yields to
+    # what the spares allow, since a batch can finish a few requests short.
+    n_two = min(N_PLANT_TWO_SET, len(comp_spare))
+    n_one = min(N_PLANT_TWO_SET + N_PLANT_ONE_SET - n_two, len(rec_spare))
+    picks = [(pid, "two") for pid in comp_spare[:n_two]] + \
+            [(pid, "one") for pid in rec_spare[:n_one]]
     for i, (pid, fmt) in enumerate(picks):
         plan.append({"pid": pid, "format": fmt,
                      "defect": "trigger" if i % 2 == 0 else "contradiction",
