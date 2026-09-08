@@ -79,7 +79,7 @@ def main() -> None:
                 for pi, pair in enumerate(s["pairs"], 1):
                     st.markdown(f"**Q{pi}.** {pair['question']}")
                     st.markdown(f"{pair['answer']}")
-                    ccols = st.columns(3)
+                    ccols = st.columns([1, 1.7, 1])   # 'Grounded in Passage' must not truncate
                     for (ckey, label, _), ccol in zip(CRITERIA, ccols):
                         with ccol:
                             checks[f"set{si}_pair{pi}_{ckey}"] = st.checkbox(
