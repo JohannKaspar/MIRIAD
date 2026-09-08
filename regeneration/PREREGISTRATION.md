@@ -144,3 +144,5 @@ immediately before the passage. The extractor now evaluates the literal and is
 checked against Python's own evaluation. Whether arm B is regenerated under the
 exact prompt, or the run is kept with this caveat, is recorded below when
 decided.
+
+**Timing of the first generation batch against the pre-registration.** Commit `b02b332` is at 13:05:26 UTC on 2026-09-07 and batch `batch_6a9eb6adc4448190a0ed43611f50ff4a` was created at 13:05:49 UTC, so the design was committed before generation started, by a margin of 23 seconds. No pair had been read before rating in any case; the margin is recorded because the file claims the ordering and a claim that thin should carry its evidence.
