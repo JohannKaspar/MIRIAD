@@ -163,3 +163,13 @@ choice worded exactly as above, reply parsed as the last standalone digit. On th
 evaluator's screens it sees the evaluator's blinded set order; on a full run's
 comparison stratum, set order is randomised under seed 4712. Chosen because it
 is not the generator and not from the generator's model family.
+
+**Definition of "caught", added before any rating, 2026-09-08.** A planted
+screen counts as caught when the evaluator leaves the defective pair unchecked
+on at least one of the three criteria. The rate is reported next to the share
+of non-planted pairs with any criterion unchecked, since a rater who unchecks
+everything would catch everything. As a secondary, on two-set planted screens,
+whether the defective set was not the preferred one. The gate of 9 of 12 uses
+the first definition. Computed by `regeneration/analysis.py`, which also fixes
+the interval (Wilson) and the agreement statistic (raw agreement and Cohen's
+kappa over the three positional labels).
