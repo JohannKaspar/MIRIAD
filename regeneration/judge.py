@@ -103,18 +103,25 @@ def run_items(items: list[dict], out: Path, model: str, workers: int,
                 print(f"  {n}/{len(todo)}", flush=True)
 
 
-def items_from_screens() -> list[dict]:
-    """The evaluator's two-set screens, in the evaluator's blinded order."""
+def items_from_screens(swap: bool = False) -> list[dict]:
+    """The evaluator's two-set screens, in the evaluator's blinded order.
+
+    `swap` reverses the set order on every screen; judging both orders and
+    counting disagreements measures the judge's position bias directly.
+    """
     screens = json.load(open(W / "screens_blinded.json"))["screens"]
     key = json.load(open(W / "screens_key.json"))["key"]
     items = []
     for s in screens:
         if s["format"] != "two_sets" or key[s["screen_id"]]["kind"] != "comparison":
             continue
+        arms = list(key[s["screen_id"]]["arms_in_order"]); sets = [x["pairs"] for x in s["sets"]]
+        if swap:
+            arms, sets = arms[::-1], sets[::-1]
         items.append({"item_id": s["screen_id"], "screen_id": s["screen_id"],
                       "passage_id": key[s["screen_id"]]["passage_id"],
-                      "arms_in_order": key[s["screen_id"]]["arms_in_order"],
-                      "passage": s["passage"], "sets": [x["pairs"] for x in s["sets"]]})
+                      "arms_in_order": arms, "swapped": swap,
+                      "passage": s["passage"], "sets": sets})
     return items
 
 
@@ -150,11 +157,13 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--max-tokens", type=int, default=1024, help="room for thinking; raise if verdicts come back unparsed")
     ap.add_argument("--redo-unparsed", action="store_true", help="drop unparsed verdicts and judge those items again")
+    ap.add_argument("--swap", action="store_true", help="screens mode: reverse set order on every screen (position-bias control)")
     args = ap.parse_args()
-    items = items_from_screens() if args.mode == "screens" else items_from_stratum(Path(args.pairs))
+    items = items_from_screens(swap=args.swap) if args.mode == "screens" else items_from_stratum(Path(args.pairs))
     if args.limit:
         items = items[: args.limit]
-    run_items(items, W / f"judge_{args.mode}.jsonl", args.model, args.workers,
+    out_name = f"judge_{args.mode}{'_swapped' if args.swap else ''}.jsonl"
+    run_items(items, W / out_name, args.model, args.workers,
               max_tokens=args.max_tokens, redo_unparsed=args.redo_unparsed)
 
 
