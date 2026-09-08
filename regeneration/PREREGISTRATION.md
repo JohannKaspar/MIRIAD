@@ -30,7 +30,7 @@ only).
 passages, 32% of the run behind the release), seed `20260829`, ids sorted then
 shuffled, fixed order. Ordered ids in `sample_ids.json`, checksum
 `sha256=2e2634c0391956cde8ecc8ad3443d0f672a82de671beb670c42843defcb8ea16`.
-Any prefix of the order, within a stratum, is a valid sample.
+Any prefix of the order, within a stratum, is a valid sample. The draw was committed at `6497dc2` (2026-09-03) and this design at `b02b332` (2026-09-07); git dates are authoritative for every date in this file.
 
 Arm B is generated for all 2,000.
 
@@ -116,10 +116,10 @@ result is described as a mandate to rebuild or not to rebuild. The blinded
 screens, the ratings and both seeds are released.
 
 
-## Observations logged before any rating, 2026-08-29
+## Observations logged before any rating, 2026-09-07
 
-Recorded for transparency about what was known when rating began. Nothing above
-is changed by them.
+Recorded for transparency about what was known when rating began, at commit
+`7cc949f`. Nothing above is changed by them.
 
 The countable measurements over all 2,000 passages show arm B's answers overlap
 their source passage far less than arm A's: median verbatim 4-gram overlap 0.029
@@ -133,7 +133,7 @@ is a finding, and it will be reported as one rather than as a preference.
 
 ## Deviations
 
-**2026-08-29, prompt not byte-identical in the first generation run.** The
+**2026-09-07, prompt not byte-identical in the first generation run.** The
 prompt extractor read the raw source characters between the triple quotes
 instead of evaluating the literal, so the escape `\n` at the end of
 `main_prompt` was sent as a backslash and an `n` followed by the line break,
