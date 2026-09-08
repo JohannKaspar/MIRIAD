@@ -156,3 +156,10 @@ which the 90 and 30 screens are taken by the pre-registered rule. The full
 is reported, once the rating and judging pipeline has run end to end on the
 subset. Every reported number therefore comes from runs under the prompt as
 released.
+
+**Judge fixed before any judging, 2026-09-08.** `CSCS-Inference/zai-org/GLM-5.2`
+on the Swiss AI Research Platform, thinking enabled, temperature 0, the forced
+choice worded exactly as above, reply parsed as the last standalone digit. On the
+evaluator's screens it sees the evaluator's blinded set order; on a full run's
+comparison stratum, set order is randomised under seed 4712. Chosen because it
+is not the generator and not from the generator's model family.
